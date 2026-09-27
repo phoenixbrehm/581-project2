@@ -41,8 +41,8 @@ class AISolver:
                     candidates.append((x, y))
         x, y = random.choice(candidates)
         return [[0, x, y]]
-    
-    def mediumTurn(self) -> list[list]:
+
+    def _mediumRules(self):
         for x in range(self.board.x_size):
             for y in range(self.board.y_size):
                 checkingCell = self.board.visited[x][y] #value is number of neighboring mines
@@ -62,11 +62,69 @@ class AISolver:
                     return ret_n
                 if len(flagged_neighbors) == checkingCell and len(hidden_neighbors) > 0:
                     ret_n = []
-                    for elem in flagged_neighbors:
+                    for elem in hidden_neighbors:
                         ret_n.append([0, elem[0], elem[1]])
                     return ret_n
-        return self.easyTurn()
+        return None
+    def mediumTurn(self) -> list[list]:
+        moves = self._mediumRules()
+        if moves is None:
+            return self.easyTurn()
+        else:
+            return moves
 
 
     def hardTurn(self) -> list[list]:
-        pass
+        moves = self._mediumRules()
+        if moves is not None:
+            return moves
+        for x in range(self.board.x_size):
+            for y in range(self.board.y_size - 2):
+                c1 = self.board.visited[x][y]
+                c2 = self.board.visited[x][y+1]
+                c3 = self.board.visited[x][y+2]
+                if c1 == 1 and c2 == 2 and c3 == 1:
+                    #check if none on one side and not none on the other
+                    nxd = x-1
+                    nxu = x+1
+                    if 0 <= nxd and nxu < self.board.x_size:
+                        if(self.board.visited[nxd][y] is None and
+                           self.board.visited[nxd][y+1] is None and
+                           self.board.visited[nxd][y+2] is None and
+                           self.board.visited[nxu][y] >= 0 and
+                           self.board.visited[nxu][y+1] >= 0 and
+                           self.board.visited[nxu][y+2] >= 0):
+                            return [[1, nxd, y], [0, nxd, y+1], [1, nxd, y+2]]
+                        if(self.board.visited[nxu][y] is None and
+                           self.board.visited[nxu][y+1] is None and
+                           self.board.visited[nxu][y+2] is None and
+                           self.board.visited[nxd][y] >= 0 and
+                           self.board.visited[nxd][y+1] >= 0 and
+                           self.board.visited[nxd][y+2] >= 0):
+                            return [[1, nxu, y], [0, nxu, y+1], [1, nxu, y+2]]
+
+        for x in range(self.board.x_size - 2):
+            for y in range(self.board.y_size):
+                c1 = self.board.visited[x][y]
+                c2 = self.board.visited[x+1][y]
+                c3 = self.board.visited[x+2][y]
+                if c1 == 1 and c2 == 2 and c3 == 1:
+                    #check if none on one side and not none on the other
+                    nyl = y-1
+                    nyr = y+1
+                    if 0 <= nyl and nyr < self.board.y_size:
+                        if(self.board.visited[x][nyl] is None and
+                           self.board.visited[x+1][nyl] is None and
+                           self.board.visited[x+2][nyl] is None and
+                           self.board.visited[x][nyr] >= 0 and
+                           self.board.visited[x+1][nyr] >= 0 and
+                           self.board.visited[x+2][nyr] >= 0):
+                            return [[1, x, nyl], [0, x+1, nyl], [1, x+2, nyl]]
+                        if(self.board.visited[x][nyr] is None and
+                           self.board.visited[x+1][nyr] is None and
+                           self.board.visited[x+2][nyr] is None and
+                           self.board.visited[x][nyl] >= 0 and
+                           self.board.visited[x+1][nyl] >= 0 and
+                           self.board.visited[x+2][nyl] >= 0):
+                            return [[1, x, nyr], [0, x+1, nyr], [1, x+2, nyr]]
+        return self.easyTurn()
