@@ -29,7 +29,19 @@
 	    <input type="number" id="mineCount" min="10" max="20" required>
 	    <button type="submit">Start</button>
     </form>
-
+    <form id="aiMode">
+        <label for ="aiDifficulty">AI Difficulty:</label>
+        <select name ="difficulty" id="aiDifficulty">
+            <option value="off">Off</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+        </select>
+        <label for="interactiveMode">
+            <input type="checkbox" id="interactiveMode">
+            Interactive Mode
+        </label>
+    </form>
     <p id="minesRemaining">Remaining flags: </p>
     <p id="timer">Time: 0s</p>
 
@@ -492,5 +504,18 @@ document.getElementById("setupForm").addEventListener("submit", function(event) 
 	document.getElementById("minesRemaining").style.display = "block";
 	cur_state = 2;
 });
+
+aiDifficulty = document.getElementById("aiDifficulty")
+interactive = document.getElementById("interactiveMode")
+aiDifficulty.addEventListener("change", function(){
+    if(aiDifficulty.value === "off"){
+        interactive.checked = false;
+        interactive.disabled = true;
+    }
+    else{
+        interactive.disabled = false;
+    }
+})
+
 
 </script>
