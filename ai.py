@@ -55,12 +55,13 @@ class AISolver:
                         flagged_neighbors.append((nx, ny))
                     elif self.board.visited[nx][ny] is None:
                         hidden_neighbors.append((nx, ny))
-                if len(hidden_neighbors) == checkingCell and len(hidden_neighbors) > 0: #and condition is for handling 0's
+                remaining_mines = checkingCell - len(flagged_neighbors)
+                if remaining_mines == len(hidden_neighbors) and remaining_mines > 0:
                     ret_n = []
                     for elem in hidden_neighbors:
                         ret_n.append([1, elem[0], elem[1]])
                     return ret_n
-                if len(flagged_neighbors) == checkingCell and len(hidden_neighbors) > 0:
+                if remaining_mines == 0 and len(hidden_neighbors) > 0:
                     ret_n = []
                     for elem in hidden_neighbors:
                         ret_n.append([0, elem[0], elem[1]])
