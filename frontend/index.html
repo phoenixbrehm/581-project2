@@ -21,6 +21,16 @@
     <title>Minesweeper</title>
 </head>
 <body>
+	
+	<audio id="click_sound" src="sounds/tick.wav"></audio>    
+
+	<button onclick="playclicksound()">Test Sound</button>
+	
+	<audio id="flag_sound" src="sounds/flag_sound.ogg"></audio>
+	<audio id="mine_sound" src="sounds/lose.wav"></audio>
+	<audio id="win_sound" src="sounds/win.wav"></audio>
+	<audio id="lose_sound" src="sounds/sfx_defeat.ogg"></audio>
+
     <h1>Minesweeper</h1>
     <form id="setupForm">
 	    <label for ="mineCount">Number of mines:</label>
@@ -165,6 +175,9 @@
 </style>
 
 <script>
+	functions playclicksound() {
+		document.getElementById("click_sound").play();
+	}
 
 var cur_state;
 
