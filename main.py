@@ -94,7 +94,8 @@ def boardUpdate(click: clickRequest):
     return {
             "board": game.visited, # return the board that was updated by backend processes
             "result": result, # return the retrieved result
-            "mines": game.RemainingMines() # return the count of remaining mines
+            "mines": game.RemainingMines(), # return the count of remaining mines
+            "elapsed": game.Elapsed() #return the elapsed time
             }
 
 # Trey - 09/17/26

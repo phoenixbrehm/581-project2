@@ -15,6 +15,7 @@
 #   September 16, 2026
 import random
 from collections import deque
+import time
 
 
 
@@ -49,6 +50,9 @@ class Minesweeper:
         #This will be a 10x10 matrix that stores what the visited version of the grid looks like
         self.visited = self._empty()
         self.MineAlgorithm(x, y, n)
+
+        self.start_time = time.time()
+        self.end_time = None
 
     #Tyler - 9/16/2026
     #Edited by Josh
@@ -161,6 +165,7 @@ class Minesweeper:
             self.visited[x][y] = EXPLODED_MINE #The mine explodes
             self.EndBoard() #The game is over
             self.state = LOSS #The game state is a loss
+            self.end_time = time.time()
             return LOSS #Return that the game has been lost
         
         self.RecOpen(x,y) #Otherwise, start opening tiles
@@ -169,6 +174,7 @@ class Minesweeper:
         if total == sum(self.matrix[i].count(MINE) for i in range(len(self.matrix))): #If all mines are unvisited or flagged 
             self.EndBoard() #The game is over
             self.state = WIN #The game state is a win
+            self.end_time = time.time()
             return WIN #Return that the game has been won
         
         return RUNNING #Otherwise, the game continues
@@ -187,6 +193,9 @@ class Minesweeper:
         else:
             pass
             
+    def Elapsed(self):
+        end = self.end_time if self.end_time is not None else time.time()
+        return end - self.start_time
 
     #Joshua - 9/19/26
     #This returns a board filled in with NONE values
