@@ -215,7 +215,7 @@ var isAiTurn = false;
 //Timer stuff
 var timerInterval = null;
 var startTime = null;
-var gameID = 0; // bumped on every new game so stale responses can be ignored
+var gameId = 0; // bumped on every new game so stale responses can be ignored
 
 const colors = [
     null,
@@ -279,9 +279,7 @@ function cellClicked(x, y){
 	if (cur_state != 2 || (aiEnabled && !interactiveMode) || (aiEnabled && isAiTurn)){
         	return;
 	}
-    
-    const myGame = gameId; // remember which game this click belongs to
-
+	const myGame = gameId; // remember which game this click belongs to
 	// create the post request to the /board endpoint
 	fetch("/board", {
 		method: "POST",
