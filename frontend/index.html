@@ -205,6 +205,7 @@ var cur_state;
 //Timer stuff
 var timerInterval = null;
 var startTime = null;
+var gameId = 0; // bumped on every new game so stale responses can be ignored
 
 const colors = [
     null,
@@ -229,12 +230,12 @@ function updateTimerDisplay(){
     document.getElementById("timer").textContent = `Time: ${seconds}s`;
 }
 
-//starts the timer if it hasn't been started
-function startTimer(){
+//starts the timer if it hasn't been started, offset by the server's elapsed time
+function startTimer(serverElapsed = 0){
     if (timerInterval !== null){
         return;
     }
-    startTime = Date.now();
+    startTime = Date.now() - serverElapsed * 1000;
     updateTimerDisplay();
     timerInterval = setInterval(updateTimerDisplay, 1000);
 }
@@ -268,8 +269,7 @@ function cellClicked(x, y){
 	if (cur_state != 2){
         	return;
 	}
-    //starts the timer if its the first click
-    startTimer();
+	const myGame = gameId; // remember which game this click belongs to
 
 	// create the post request to the /board endpoint
 	fetch("/board", {
@@ -282,11 +282,16 @@ function cellClicked(x, y){
 			y: y
 		})
 	})
-		.then(response => response.json()) // recieve the json response
+		.then(response => {
+			if (!response.ok) throw new Error(`/board returned ${response.status}`);
+			return response.json(); // recieve the json response
+		})
 		.then(data => {
+			if (myGame !== gameId) return; // a new game started while this was in flight
 			console.log(data);
 			populateTable(data.board); // take the given board data and pass it to populateTable
 			cur_state = data.result; // assigns the result of the game to cur_state
+			startTimer(data.elapsed); // starts on the first confirmed click, synced to the server clock
 			if (cur_state == 1) { // if it is 1
                 stopTimer(data.elapsed); //stops the timer when the game ends
 				showWinScreen(); // then the game is won, display corresponding screen
@@ -295,6 +300,10 @@ function cellClicked(x, y){
                 stopTimer(data.elapsed); //stops the timer when the game ends
 				showLossScreen(); // then the is lost, display corresponding screen
 			}
+		})
+		.catch(err => {
+			console.error(err);
+			if (myGame === gameId) stopTimer(); // don't leave a timer running on a failed request
 		});
 }
 
@@ -503,6 +512,7 @@ document.getElementById("setupForm").addEventListener("submit", function(event) 
 	const mines = Number(document.getElementById("mineCount").value);
 	//Update the mine count once the game is started
 	updateMineCount(mines);
+	gameId++; // invalidate any in-flight /board responses from the previous game
     resetTimer(); //resets the timer on a new game
 	//Set the text box to display the correct number of mines
 	document.getElementById("minesRemaining").style.display = "block";

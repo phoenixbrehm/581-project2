@@ -51,7 +51,7 @@ class Minesweeper:
         self.visited = self._empty()
         self.MineAlgorithm(x, y, n)
 
-        self.start_time = time.time()
+        self.start_time = time.monotonic()
         self.end_time = None
 
     #Tyler - 9/16/2026
@@ -165,7 +165,7 @@ class Minesweeper:
             self.visited[x][y] = EXPLODED_MINE #The mine explodes
             self.EndBoard() #The game is over
             self.state = LOSS #The game state is a loss
-            self.end_time = time.time()
+            self.end_time = time.monotonic()
             return LOSS #Return that the game has been lost
         
         self.RecOpen(x,y) #Otherwise, start opening tiles
@@ -174,7 +174,7 @@ class Minesweeper:
         if total == sum(self.matrix[i].count(MINE) for i in range(len(self.matrix))): #If all mines are unvisited or flagged 
             self.EndBoard() #The game is over
             self.state = WIN #The game state is a win
-            self.end_time = time.time()
+            self.end_time = time.monotonic()
             return WIN #Return that the game has been won
         
         return RUNNING #Otherwise, the game continues
@@ -194,7 +194,7 @@ class Minesweeper:
             pass
             
     def Elapsed(self):
-        end = self.end_time if self.end_time is not None else time.time()
+        end = self.end_time if self.end_time is not None else time.monotonic()
         return end - self.start_time
 
     #Joshua - 9/19/26
