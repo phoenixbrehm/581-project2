@@ -44,6 +44,7 @@
     </form>
     <p id="minesRemaining">Remaining flags: </p>
     <p id="timer">Time: 0s</p>
+    <p id="turnDisplay" style="display: none">Player's Turn</p>
 
     <!-- Stores Game -->
     <div id="boardDiv"></div>
@@ -91,6 +92,22 @@
   border: 5px outset grey;
 }
 
+#turnDisplay{
+  text-align: center;
+  display: block;
+
+  font-family: monospace;
+  font-size: 24px;
+  font-weight: bold;
+
+  margin: 15px auto;
+  padding: 8px 20px;
+
+  width: fit-content;
+
+  background-color: lightgrey;
+  border: 5px outset grey;
+}
 
 .endGameText {
     font-size: 100pt;
@@ -516,6 +533,17 @@ aiDifficulty.addEventListener("change", function(){
         interactive.disabled = false;
     }
 })
-
-
+function updateTurnDisplay(turn){
+    turndisplay = document.getElementById("turnDisplay");
+    if(aiDifficulty.value === "off"){
+        turndisplay.style.display = "none";
+        return;
+    }
+    turndisplay.style.display = "block";
+    if(turn === "player"){
+        turndisplay.textContent = "Player's Turn"
+    }else if(turn === "ai"){
+        turndisplay.textContent = "AI's Turn"
+    }
+}
 </script>
