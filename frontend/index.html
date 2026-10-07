@@ -296,7 +296,7 @@ function cellClicked(x, y){
 			return response.json(); // recieve the json response
 		})
 		.then(data => {
-            if(myGame != gameID) return;
+            if(myGame != gameId) return;
 			console.log(data);
 			populateTable(data.board); // take the given board data and pass it to populateTable
 			cur_state = data.result; // assigns the result of the game to cur_state
@@ -577,7 +577,7 @@ document.getElementById("setupForm").addEventListener("submit", function(event) 
 
 	//Update the mine count once the game is started
 	updateMineCount(mines);
-    gameID++;
+    gameId++;
     resetTimer(); //resets the timer on a new game
 	//Set the text box to display the correct number of mines
 	document.getElementById("minesRemaining").style.display = "block";
@@ -609,8 +609,8 @@ document.getElementById("setupForm").addEventListener("submit", function(event) 
 	cur_state = 2;
 });
 
-aiDifficulty = document.getElementById("aiDifficulty");
-interactive = document.getElementById("interactiveMode");
+const aiDifficulty = document.getElementById("aiDifficulty");
+const interactive = document.getElementById("interactiveMode");
 aiDifficulty.addEventListener("change", function(){
     if(aiDifficulty.value === "off"){
         interactive.checked = false;
