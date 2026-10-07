@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from Minesweeper import Minesweeper
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from ai import AISolver
 
 app = FastAPI()
 
@@ -30,7 +31,10 @@ app.add_middleware(
 )
 
 game = None
+ai_solver = None
 mine_count = 10
+current_turn = "player" #player or ai
+interactive_mode = False
 
 # Trey - 09/17/26
 # pydantic schemas
@@ -48,6 +52,8 @@ class setupRequest(BaseModel):
 
     # it takes the desired minecount of the user
     n: int
+    difficulty: str = "off"
+    interactive: bool = False
 
 # fastapi endpoints to be used
 
@@ -67,11 +73,22 @@ def setupGame(setup: setupRequest):
     # and the game state, the global variables are used in this function
     global mine_count
     global game
+    global ai_solver
+    global current_turn
+    global interactive_mode
     
     # the mine_count given is assigned
     mine_count = setup.n
+    interactive_mode = setup.interactive
+    current_turn = "player"
     # and the game state is reverted to None to prepare for a new game
     game = None
+    if setup.difficulty != "off":
+        diffic_map = {"easy": 0, "medium": 1, "hard": 2}
+        diffic_val = diffic_map.get(setup.difficulty, 0)
+        ai_solver = {"difficulty": diffic_val, "active": True}
+    else:
+        ai_solver = None
 
 # Trey - 09/17/26 and 09/18/26
 # endpoint that takes the x and y information of a click, handles the initialization of the game
@@ -81,21 +98,30 @@ def setupGame(setup: setupRequest):
 def boardUpdate(click: clickRequest):
     # the global variable tracked across the file for the game state
     global game
+    global ai_solver
+    global current_turn
 
     # if the game is not initialized
     if game is None:
         # initialized it using the mine_count determined in setup, and provide the x and y 
         # cordinates for the cell clicked
         game = Minesweeper(click.x,click.y,mine_count)
-
+        if ai_solver and isinstance(ai_solver, dict):
+            ai_solver = AISolver(ai_solver["difficulty"], game)
+    cellval = game.visited[click.x][click.y]
     # pass of the information about the cell click and store the information about the result
     result = game.Outcome(click.x, click.y)
-
+    if ai_solver and result == 2:
+        if cellval is not None:
+            current_turn = "player"
+        else:
+            current_turn = "ai"
     return {
             "board": game.visited, # return the board that was updated by backend processes
             "result": result, # return the retrieved result
             "mines": game.RemainingMines(), # return the count of remaining mines
-            "elapsed": game.Elapsed() #return the elapsed time
+            "elapsed": game.Elapsed(), #return the elapsed time
+            "turn": current_turn #returns whose turn it is
             }
 
 # Trey - 09/17/26
@@ -104,12 +130,52 @@ def boardUpdate(click: clickRequest):
 @app.post("/flag")
 def flagCell(click: clickRequest):
     # if the game exists
+    global game
+    global current_turn
+    global ai_solver
     if game:
         # then pass the click information to the Flag function
         game.Flag(click.x, click.y)
+        if ai_solver and current_turn == "player":
+            current_turn = "ai"
         return {
             "board": game.visited, # return the updated board state
-            "mines": game.RemainingMines() # and the count of remaining mines
+            "mines": game.RemainingMines(), # and the count of remaining mines
+            "turn": current_turn
             }
     else:
         raise HTTPException(status_code=404, detail="Board not found")
+
+@app.post("/ai-turn")
+def aiTurn():
+    global game
+    global ai_solver
+    global current_turn
+    if game is None:
+        game = Minesweeper(0, 0, mine_count)
+        if ai_solver and isinstance(ai_solver, dict):
+            ai_solver = AISolver(ai_solver["difficulty"], game)
+    if ai_solver is None or isinstance(ai_solver, dict):
+        raise HTTPException(status_code=400, detail="AI or game not properly initialized")
+
+    moves = ai_solver.takeTurn()
+
+    result = 2
+    for mode, x, y in moves:
+        if mode == 0:
+            result = game.Outcome(x, y)
+        elif mode == 1:
+            game.Flag(x, y)
+        if result != 2:
+            break
+
+    if result == 2:
+        current_turn = "ai" if not interactive_mode else "player"
+
+    return {
+        "board": game.visited,
+        "result": result,
+        "mines": game.RemainingMines(),
+        "elapsed": game.Elapsed(),
+        "turn": current_turn
+    }

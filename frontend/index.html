@@ -204,12 +204,14 @@
 </style>
 
 <script>
-	function playclicksound() {
-		document.getElementById("click_sound").play();
-	}
+function playclicksound() {
+	document.getElementById("click_sound").play();
+}
 
 var cur_state;
-
+var ai_enabled = false;
+var interactiveMode = false;
+var isAiTurn = false;
 //Timer stuff
 var timerInterval = null;
 var startTime = null;
@@ -273,7 +275,7 @@ function resetTimer(){
 function cellClicked(x, y){
 	console.log(`clicked ${x}, ${y}`);
 	
-	if (cur_state != 2){
+	if (cur_state != 2 || (aiEnabled && !interactiveMode) || (aiEnabled && isAiTurn)){
         	return;
 	}
     //starts the timer if its the first click
@@ -295,6 +297,8 @@ function cellClicked(x, y){
 			console.log(data);
 			populateTable(data.board); // take the given board data and pass it to populateTable
 			cur_state = data.result; // assigns the result of the game to cur_state
+            updateTurnDisplay(data.turn);
+            isAiTurn = (data.turn === "ai");
 			if (cur_state == 1) { // if it is 1
                 stopTimer(data.elapsed); //stops the timer when the game ends
 				showWinScreen(); // then the game is won, display corresponding screen
@@ -302,7 +306,13 @@ function cellClicked(x, y){
 			else if (cur_state == 0) { // if it is 0
                 stopTimer(data.elapsed); //stops the timer when the game ends
 				showLossScreen(); // then the is lost, display corresponding screen
-			}
+			}else if(aiEnabled && isAiTurn){
+                if(interactiveMode){
+
+                }else{
+                    setTimeout(triggerAiTurn, 500)
+                }
+            }
 		});
 }
 
@@ -311,7 +321,7 @@ function cellClicked(x, y){
 // clicked and passes information over to the /flag endpoint so it can handle flagging functionality
 function cellFlagged(x, y){
     console.log(`flagged ${x}, ${y}`);
-    if (cur_state != 2){
+    if (cur_state != 2 || (aiEnabled && isAiTurn)){
         return;
     }
 	// create the post request to the /flag endpoint
@@ -336,9 +346,44 @@ function cellFlagged(x, y){
 		.then(data => { 
       populateTable(data.board); // takes the given board data and populates the table with it
       updateMineCount(data.mines); // takes the given mine data and updates the mine count with it
+      updateTurnDisplay(data.turn);
+      isAiTurn = (data.turn === "ai");
+      if(aiEnabled && isAiTurn){
+        if(interactiveMode){
+
+        }else{
+            setTimeout(triggerAiTurn, 500)
+        }
+      }
     }).catch(error => {console.log(error)});
 }
 
+function triggerAiTurn(){
+    if (cur_state != 2){
+        return;
+    }
+    fetch("/ai-turn", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"}
+    })
+    .then(response => response.json())
+    .then(data => {
+        populateTable(data.board);
+        cur_state = data.result;
+        updateMineCount(data.mines);
+        updateTurnDisplay(data.turn);
+        isAiTurn = (data.turn === "ai");
+        if (cur_state == 1){
+            stopTimer(data.elapsed);
+            showWinScreen();
+        }else if(cur_state == 0){
+            stopTimer(data.elapsed);
+            showLossScreen();
+        }else if(aiEnabled && isAiTurn && !interactiveMode){
+            setTimeout(triggerAiTurn, 500);
+        }
+    });
+}
 
 // Jack Larson
 // 9/17/26
@@ -449,7 +494,7 @@ function generateTable() {
 
     //add header for column labels
     const headerRow = document.createElement("tr");
-     headerRow.innerHTML = '<th></th>';
+    headerRow.innerHTML = '<th></th>';
 
     //Iterate for each letter and add to top row
     for (let i = 0; i < 10; i++){
@@ -480,7 +525,14 @@ function generateTable() {
             
             //add listener for left click and call function with given position
             boardCell.addEventListener("click", (event) =>{
-                cellClicked(x, y);
+                if(aiEnabled && !interactiveMode){
+                    return;
+                }
+                if(aiEnabled && isAiTurn && interactiveMode){
+                    triggerAiTurn();
+                }else{
+                    cellClicked(x, y);
+                }
             });
             //add listener for right click and call function with given position
             boardCell.addEventListener("contextmenu", (event) =>{
@@ -509,6 +561,12 @@ document.getElementById("setupForm").addEventListener("submit", function(event) 
 	
 	// sets the number of mines to be in the game board
 	const mines = Number(document.getElementById("mineCount").value);
+    // sets difficulty
+    const difficulty = document.getElementById("aiDifficulty").value;
+    interactiveMode = document.getElementById("interactiveMode").checked;
+    aiEnabled = (difficulty !== "off");
+    isAiTurn = false;
+
 	//Update the mine count once the game is started
 	updateMineCount(mines);
     resetTimer(); //resets the timer on a new game
@@ -522,16 +580,28 @@ document.getElementById("setupForm").addEventListener("submit", function(event) 
 			"Content-Type": "application/json"
 		},
 		body: JSON.stringify({
-			n: mines
+			n: mines,
+            difficulty: difficulty,
+            interactive: interactiveMode
 		})
 	})
-		.then(generateTable); // after setup completes generate a new board for the game
+		.then(() => {
+            generateTable(); // after setup completes generate a new board for the game
+            if(aiEnabled && !interactiveMode){
+                isAiTurn = true;
+                updateTurnDisplay("ai");
+                startTimer();
+                setTimeout(triggerAiTurn, 500);
+            }else{
+                updateTurnDisplay("player");
+            }
+        });
 	document.getElementById("minesRemaining").style.display = "block";
 	cur_state = 2;
 });
 
-aiDifficulty = document.getElementById("aiDifficulty")
-interactive = document.getElementById("interactiveMode")
+aiDifficulty = document.getElementById("aiDifficulty");
+interactive = document.getElementById("interactiveMode");
 aiDifficulty.addEventListener("change", function(){
     if(aiDifficulty.value === "off"){
         interactive.checked = false;
@@ -540,7 +610,7 @@ aiDifficulty.addEventListener("change", function(){
     else{
         interactive.disabled = false;
     }
-})
+});
 function updateTurnDisplay(turn){
     turndisplay = document.getElementById("turnDisplay");
     if(aiDifficulty.value === "off"){
@@ -549,8 +619,10 @@ function updateTurnDisplay(turn){
     }
     turndisplay.style.display = "block";
     if(turn === "player"){
-        turndisplay.textContent = "Player's Turn"
-    }else if(turn === "ai"){
+        turndisplay.textContent = "Player's Turn";
+    }else if(turn === "ai" && interactive.checked){
+        turndisplay.textContent = "AI's Turn (Click to Proceed)";
+    }else if(turn === "ai" && !interactive.checked){
         turndisplay.textContent = "AI's Turn"
     }
 }
