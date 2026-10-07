@@ -215,6 +215,7 @@ var isAiTurn = false;
 //Timer stuff
 var timerInterval = null;
 var startTime = null;
+var gameID = 0; // bumped on every new game so stale responses can be ignored
 
 const colors = [
     null,
@@ -239,12 +240,12 @@ function updateTimerDisplay(){
     document.getElementById("timer").textContent = `Time: ${seconds}s`;
 }
 
-//starts the timer if it hasn't been started
-function startTimer(){
+//starts the timer if it hasn't been started, offset by the server's elapsed time
+function startTimer(serverElapsed = 0){
     if (timerInterval !== null){
         return;
     }
-    startTime = Date.now();
+    startTime = Date.now() - serverElapsed * 1000;
     updateTimerDisplay();
     timerInterval = setInterval(updateTimerDisplay, 1000);
 }
@@ -278,8 +279,8 @@ function cellClicked(x, y){
 	if (cur_state != 2 || (aiEnabled && !interactiveMode) || (aiEnabled && isAiTurn)){
         	return;
 	}
-    //starts the timer if its the first click
-    startTimer();
+    
+    const myGame = gameId; // remember which game this click belongs to
 
 	// create the post request to the /board endpoint
 	fetch("/board", {
@@ -292,11 +293,16 @@ function cellClicked(x, y){
 			y: y
 		})
 	})
-		.then(response => response.json()) // recieve the json response
+		.then(response => {
+			if (!response.ok) throw new Error(`/board returned ${response.status}`);
+			return response.json(); // recieve the json response
+		})
 		.then(data => {
+            if(myGame != gameID) return;
 			console.log(data);
 			populateTable(data.board); // take the given board data and pass it to populateTable
 			cur_state = data.result; // assigns the result of the game to cur_state
+            startTimer(data.elapsed);
             updateTurnDisplay(data.turn);
             isAiTurn = (data.turn === "ai");
 			if (cur_state == 1) { // if it is 1
@@ -313,7 +319,11 @@ function cellClicked(x, y){
                     setTimeout(triggerAiTurn, 500)
                 }
             }
-		});
+		})
+        .catch(err => {
+			console.error(err);
+			if (myGame === gameId) stopTimer(); // don't leave a timer running on a failed request;
+        });
 }
 
 // Trey - 09/18/26
@@ -569,6 +579,7 @@ document.getElementById("setupForm").addEventListener("submit", function(event) 
 
 	//Update the mine count once the game is started
 	updateMineCount(mines);
+    gameID++;
     resetTimer(); //resets the timer on a new game
 	//Set the text box to display the correct number of mines
 	document.getElementById("minesRemaining").style.display = "block";
