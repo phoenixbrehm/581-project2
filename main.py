@@ -11,6 +11,8 @@
 #Creation Date:
 #   September 17, 2026
 
+from fastapi.staticfiles import StaticFiles
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from Minesweeper import Minesweeper
@@ -18,6 +20,8 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.mount("/sounds", StaticFiles(directory="frontend/sounds"), name="sounds")
 
 origins = ["*"]
 

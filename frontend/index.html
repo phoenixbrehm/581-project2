@@ -156,7 +156,7 @@
 </style>
 
 <script>
-	functions playclicksound() {
+	function playclicksound() {
 		document.getElementById("click_sound").play();
 	}
 
@@ -185,6 +185,7 @@ function updateMineCount(count) {
 // and calls the /board endpoint with the information
 function cellClicked(x, y){
 	console.log(`clicked ${x}, ${y}`);
+	document.getElementById("click_sound").play();    //Maha's code
 	
 	if (cur_state != 2){
         	return;
@@ -220,6 +221,7 @@ function cellClicked(x, y){
 // clicked and passes information over to the /flag endpoint so it can handle flagging functionality
 function cellFlagged(x, y){
     console.log(`flagged ${x}, ${y}`);
+    document.getElementById("flag_sound").play();   //Maha's code
     if (cur_state != 2){
         return;
     }
@@ -261,6 +263,7 @@ function showWinScreen() {
 
     //fill text
     winText.textContent = "YOU WIN";
+    document.getElementById("win_sound").play();
     
     //add to game screen
     const boardDiv = document.getElementById("boardDiv");
@@ -279,6 +282,12 @@ function showLossScreen() {
     
     //fill text
     lossText.textContent = "YOU LOSE";
+
+    setTimeout(() => {
+    	const defeatSound = document.getElementById("lose_sound");
+    	defeatSound.currentTime = 0;
+    	defeatSound.play();
+    }, 800);                 //Maha's code
     
     //add to game screen
     const boardDiv = document.getElementById("boardDiv");
@@ -329,6 +338,7 @@ function populateTable(data) {
                 case -2:
                     //explosion on -2 (clicked mine)
                     boardCell.textContent = "💥";
+		    document.getElementById("mine_sound").play();
                     break;
                     
                 case -3:
@@ -389,12 +399,14 @@ function generateTable() {
             
             //add listener for left click and call function with given position
             boardCell.addEventListener("click", (event) =>{
+		if (event.button !== 0) return;
                 cellClicked(x, y);
             });
             //add listener for right click and call function with given position
             boardCell.addEventListener("contextmenu", (event) =>{
                 //cancel opening context menu on right click
                 event.preventDefault();
+		event.stopPropagation();   //Maha's code
                 cellFlagged(x, y);
             });
 
