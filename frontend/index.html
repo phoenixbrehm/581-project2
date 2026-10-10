@@ -15,6 +15,19 @@
 #Creation Date:
 #   September 17, 2026
 -->
+
+
+<!--
+Project 2 Authors:
+Maha Jornaz
+Phoenix Brehm
+Carson Schraad
+Collin Tullis
+
+Last updated - 10/10/26
+
+Added features for AI display updates, added features to gain settings for AI, and added a timer display and updates to said timer
+-->
 <!DOCTYPE html>
 <html>
 <head>
@@ -366,6 +379,7 @@ function cellFlagged(x, y){
     }).catch(error => {console.log(error)});
 }
 
+//function which starts the turn for the AI and visually updates accordingly.
 function triggerAiTurn(){
     if (cur_state != 2){
         return;
@@ -609,6 +623,7 @@ document.getElementById("setupForm").addEventListener("submit", function(event) 
 	cur_state = 2;
 });
 
+//listens for the updates of AI difficulty, disabling the interactive button if ai is off.
 const aiDifficulty = document.getElementById("aiDifficulty");
 const interactive = document.getElementById("interactiveMode");
 aiDifficulty.addEventListener("change", function(){
@@ -620,6 +635,8 @@ aiDifficulty.addEventListener("change", function(){
         interactive.disabled = false;
     }
 });
+
+//updates the turn display showing either, players turn when ai is on and interactive, ai's turn with instructions when in interactice mode, and just ai's turn when not interactive.
 function updateTurnDisplay(turn){
     turndisplay = document.getElementById("turnDisplay");
     if(aiDifficulty.value === "off"){

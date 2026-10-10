@@ -1,14 +1,23 @@
 #ai.py
 """
-Ideas:
     In main.py setupgame, this is when we init ai, ask difficulty and if interactive mode (main will deal with interactive mode)
         This means in index.html we need to implement a UI element that will send main.py the mode and difficulty, which will init ai.py
         Also in index.html we need a UI element that says "AI's turn" or "Player's Turn"
     In main.py we can create a new @app.post for the AI specifically for when it is the AI's turn
-        /board and /flag can be just for the human (although probably need to add safety within those methods for "you cannot play it is the ai's turn" and swapping the turn to the AI from the human)
+        /board and /flag can be just for the human except for swapping the turn to the AI from the human
+"""
+
+
+
+"""
     In ai.py, we pass in the difficulty and board, we will return our clicks given the visible state of the board.
         board.visited will contain what the AI knows and we update by doing .outcome() method
         board.visited will return values of adjacent mines and will return None for unmarked cells
+        AI class will have 6 functions, init, a general take turn function which will take a turn based off of a difficulty setting. and then 3 difficulty turns, two of which require a helper function
+
+    Author - Phoenix Brehm
+    Created - 9/27/26
+    Last Updated - 10/10/26
 """
 from Minesweeper import Minesweeper
 import random
@@ -33,7 +42,7 @@ class AISolver:
 
         
     #returns a list of lists of len() == 3, a list that had mode (0 for click 1 for flag) and coordinates (x, y), each interior list is the list of moves to be made
-    def easyTurn(self) -> list[list]:
+    def easyTurn(self) -> list[list]: #picks a random cell to uncover, we never flag in this mode.
         candidates = []
         for x in range(self.board.x_size):
             for y in range(self.board.y_size):
@@ -42,7 +51,7 @@ class AISolver:
         x, y = random.choice(candidates)
         return [[0, x, y]]
 
-    def _mediumRules(self):
+    def _mediumRules(self): #called by hard and medium we check the surroundings of a number, and either flag if number == remaining cells or clear all adjacent cells if flags == number
         for x in range(self.board.x_size):
             for y in range(self.board.y_size):
                 checkingCell = self.board.visited[x][y] #value is number of neighboring mines
@@ -56,30 +65,30 @@ class AISolver:
                     elif self.board.visited[nx][ny] is None:
                         hidden_neighbors.append((nx, ny))
                 remaining_mines = checkingCell - len(flagged_neighbors)
-                if remaining_mines == len(hidden_neighbors) and remaining_mines > 0:
+                if remaining_mines == len(hidden_neighbors) and remaining_mines > 0: #flag everything
                     ret_n = []
                     for elem in hidden_neighbors:
                         ret_n.append([1, elem[0], elem[1]])
                     return ret_n
-                if remaining_mines == 0 and len(hidden_neighbors) > 0:
+                if remaining_mines == 0 and len(hidden_neighbors) > 0: #clear everything
                     ret_n = []
                     for elem in hidden_neighbors:
                         ret_n.append([0, elem[0], elem[1]])
                     return ret_n
         return None
     def mediumTurn(self) -> list[list]:
-        moves = self._mediumRules()
-        if moves is None:
+        moves = self._mediumRules() #get a set of moves that have the medium rule applied
+        if moves is None: #if nothing was found fall back on the easy turn of random clicking
             return self.easyTurn()
         else:
             return moves
 
 
     def hardTurn(self) -> list[list]:
-        moves = self._mediumRules()
-        if moves is not None:
+        moves = self._mediumRules() #check if the medium rules result in anything
+        if moves is not None: #return early if it does
             return moves
-        for x in range(self.board.x_size):
+        for x in range(self.board.x_size): #checking the x's orientation to see if 1-2-1 applies
             for y in range(self.board.y_size - 2):
                 c1 = self.board.visited[x][y]
                 c2 = self.board.visited[x][y+1]
@@ -104,7 +113,7 @@ class AISolver:
                            self.board.visited[nxd][y+2] >= 0):
                             return [[1, nxu, y], [0, nxu, y+1], [1, nxu, y+2]]
 
-        for x in range(self.board.x_size - 2):
+        for x in range(self.board.x_size - 2): #checking the y's orientation to see if 1-2-1 applies
             for y in range(self.board.y_size):
                 c1 = self.board.visited[x][y]
                 c2 = self.board.visited[x+1][y]
@@ -128,4 +137,4 @@ class AISolver:
                            self.board.visited[x+1][nyl] >= 0 and
                            self.board.visited[x+2][nyl] >= 0):
                             return [[1, x, nyr], [0, x+1, nyr], [1, x+2, nyr]]
-        return self.easyTurn()
+        return self.easyTurn() #if we find no examples of 1-2-1 nor medium then we fall back on easy turn.

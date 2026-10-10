@@ -11,6 +11,17 @@
 #Creation Date:
 #   September 17, 2026
 
+
+"""
+Project 2 Authors
+Phoenix Brehm
+Collin Tullis
+
+Last Updated - 10/10/26
+
+Added interaction with the AI, return time elapsed, and new post method for the AI.
+"""
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from Minesweeper import Minesweeper
@@ -112,7 +123,7 @@ def boardUpdate(click: clickRequest):
     # pass of the information about the cell click and store the information about the result
     result = game.Outcome(click.x, click.y)
     if ai_solver and result == 2:
-        if cellval is not None:
+        if cellval is not None: #is used to not pass the turn if the player clicks on an already uncovered cell
             current_turn = "player"
         else:
             current_turn = "ai"
@@ -136,7 +147,7 @@ def flagCell(click: clickRequest):
     if game:
         # then pass the click information to the Flag function
         game.Flag(click.x, click.y)
-        if ai_solver and current_turn == "player":
+        if ai_solver and current_turn == "player": #swap turn from player
             current_turn = "ai"
         return {
             "board": game.visited, # return the updated board state
@@ -146,13 +157,14 @@ def flagCell(click: clickRequest):
     else:
         raise HTTPException(status_code=404, detail="Board not found")
 
+#endpoint that runs the AI solver
 @app.post("/ai-turn")
 def aiTurn():
     global game
     global ai_solver
     global current_turn
     if game is None:
-        game = Minesweeper(0, 0, mine_count)
+        game = Minesweeper(0, 0, mine_count) #inits game if no game is found for non-interactive mode
         if ai_solver and isinstance(ai_solver, dict):
             ai_solver = AISolver(ai_solver["difficulty"], game)
     if ai_solver is None or isinstance(ai_solver, dict):
@@ -161,7 +173,7 @@ def aiTurn():
     moves = ai_solver.takeTurn()
 
     result = 2
-    for mode, x, y in moves:
+    for mode, x, y in moves: #performs moves obtained
         if mode == 0:
             result = game.Outcome(x, y)
         elif mode == 1:
@@ -170,7 +182,7 @@ def aiTurn():
             break
 
     if result == 2:
-        current_turn = "ai" if not interactive_mode else "player"
+        current_turn = "ai" if not interactive_mode else "player" #swaps turn or not.
 
     return {
         "board": game.visited,
