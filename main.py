@@ -147,8 +147,12 @@ def flagCell(click: clickRequest):
     if game:
         # then pass the click information to the Flag function
         game.Flag(click.x, click.y)
-        if ai_solver and current_turn == "player": #swap turn from player
-            current_turn = "ai"
+        cellval = game.visited[click.x][click.y]
+        if cellval == -1:
+            if ai_solver and current_turn == "player": #swap turn from player
+                current_turn = "ai"
+        else:
+            current_turn = "player"
         return {
             "board": game.visited, # return the updated board state
             "mines": game.RemainingMines(), # and the count of remaining mines
