@@ -1,0 +1,8 @@
+Name			Job (est. hours)
+Carson Schraad: 	Add Timer Feature (3)
+Collin Tullis: 		Add Timer Feature (3)
+Ethan Cook: 		Hosting on Cycle Server (2)
+Ethan Le: 		QA and Testing (3)
+Kristoffer Roy Comahig:	QA and Testing (3)
+Maha Jornaz: 		Sound Effects (3)
+Phoenix Brehm: 		AI Solver (4)
