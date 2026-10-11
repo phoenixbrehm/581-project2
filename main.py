@@ -32,6 +32,8 @@ from ai import AISolver
 
 app = FastAPI()
 
+app.mount("/sounds", StaticFiles(directory="frontend/sounds"), name="sounds")
+
 origins = ["*"]
 
 app.add_middleware(

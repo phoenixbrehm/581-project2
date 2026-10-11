@@ -3,7 +3,7 @@ import time
 import webbrowser
 
 output = subprocess.run(
-    ["pip", "show", "pydantic", "fastapi", "uvicorn"],
+    ["python3", "-m", "pip", "show", "pydantic", "fastapi", "uvicorn"],
     capture_output=True,
     text=True
 )
@@ -20,7 +20,7 @@ for line in versions.stdout.splitlines():
     count+=1
 
 if count < 3:
-    subprocess.run(["pip", "install", "-r", "requirements.txt"])
+    subprocess.run(["python3", "-m", "pip", "install", "-r", "requirements.txt"])
 
 server = subprocess.Popen([
     "python3",

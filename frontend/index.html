@@ -217,10 +217,9 @@ Added features for AI display updates, added features to gain settings for AI, a
 </style>
 
 <script>
-// function playclicksound() {
-// 	var audio = document.getElementById("click_sound");   //when the user clicks a cell a sound plays
-// 	audio.play();
-// }
+function playclicksound() {
+	document.getElementById("click_sound").play();
+}
 
 var cur_state;
 var ai_enabled = false;
@@ -291,6 +290,7 @@ function resetTimer(){
 // and calls the /board endpoint with the information
 function cellClicked(x, y){
 	console.log(`clicked ${x}, ${y}`);
+	document.getElementById("click_sound").play();    //Maha's code
 	
 	if (cur_state != 2 || (aiEnabled && !interactiveMode) || (aiEnabled && isAiTurn)){
         	return;
@@ -345,6 +345,7 @@ function cellClicked(x, y){
 // clicked and passes information over to the /flag endpoint so it can handle flagging functionality
 function cellFlagged(x, y){
     console.log(`flagged ${x}, ${y}`);
+    document.getElementById("flag_sound").play();   //Maha's code
     if (cur_state != 2 || (aiEnabled && isAiTurn)){
         return;
     }
@@ -422,6 +423,7 @@ function showWinScreen() {
 
     //fill text
     winText.textContent = "YOU WIN";
+    document.getElementById("win_sound").play();
     
     //add to game screen
     const boardDiv = document.getElementById("boardDiv");
@@ -440,6 +442,12 @@ function showLossScreen() {
     
     //fill text
     lossText.textContent = "YOU LOSE";
+
+    setTimeout(() => {
+    	const defeatSound = document.getElementById("lose_sound");
+    	defeatSound.currentTime = 0;
+    	defeatSound.play();
+    }, 800);                 //Maha's code
     
     //add to game screen
     const boardDiv = document.getElementById("boardDiv");
@@ -490,6 +498,7 @@ function populateTable(data) {
                 case -2:
                     //explosion on -2 (clicked mine)
                     boardCell.textContent = "💥";
+		    document.getElementById("mine_sound").play();
                     break;
                     
                 case -3:
