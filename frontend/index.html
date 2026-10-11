@@ -34,16 +34,14 @@ Added features for AI display updates, added features to gain settings for AI, a
     <title>Minesweeper</title>
 </head>
 <body>
-	<!--
-	<audio id="click_sound" src="sounds/tick.wav"></audio>     //audio for when a user clicks on a cell
+	<audio id="click_sound" src="sounds/tick.wav"></audio>     <!--audio for when a user clicks on a cell-->
 
-	<button onclick="playclicksound()">Test Sound</button>     //button that tests if the click sounds is played correctly
+	<!--<button onclick="playclicksound()">Test Sound</button>     //button that tests if the click sounds is played correctly-->
 	
-	<audio id="flag_sound" src="sounds/flag_sound.ogg"></audio>   //audio for when a user flags a cell
-	<audio id="mine_sound" src="sounds/lose.wav"></audio>      //audio for when a user clicks a mine
-	<audio id="win_sound" src="sounds/win.wav"></audio>       //audio for when a user wins 
-	<audio id="lose_sound" src="sounds/sfx_defeat.ogg"></audio>    //audio for when a user loses
-    -->
+	<audio id="flag_sound" src="sounds/flag_sound.ogg"></audio>   <!--//audio for when a user flags a cell-->
+	<audio id="mine_sound" src="sounds/lose.wav"></audio>      <!--//audio for when a user clicks a mine-->
+	<audio id="win_sound" src="sounds/win.wav"></audio>       <!--//audio for when a user wins-->
+	<audio id="lose_sound" src="sounds/sfx_defeat.ogg"></audio>    <!--//audio for when a user loses-->
     <h1>Minesweeper</h1>
     <form id="setupForm">
 	    <label for ="mineCount">Number of mines:</label>
@@ -251,7 +249,7 @@ function updateMineCount(count) {
 function updateTimerDisplay(){
     const seconds = Math.floor((Date.now() - startTime) / 1000);
     document.getElementById("timer").textContent = `Time: ${seconds}s`;
-    const audio = new Audio("/frontend/sounds/tick.mp3");
+    audio = new Audio("/frontend/sounds/tick.mp3");
     audio.play();
 }
 
@@ -566,7 +564,7 @@ function generateTable() {
                     triggerAiTurn();
                 }else{
                     // plays a click sound effect on the cells.
-                    const audio = new Audio("/frontend/sounds/clicksoundeffect.mp3");
+                    audio = new Audio("/frontend/sounds/clicksoundeffect.mp3");
                     audio.play();
                     cellClicked(x, y);
                 }
@@ -575,7 +573,7 @@ function generateTable() {
             boardCell.addEventListener("contextmenu", (event) =>{
                 //cancel opening context menu on right click
                 event.preventDefault();
-                const audio = new Audio("/frontend/sounds/clicksoundeffect.mp3");
+                audio = new Audio("/frontend/sounds/clicksoundeffect.mp3");
                 audio.play();
                 cellFlagged(x, y);
             });
