@@ -16,10 +16,11 @@
 Project 2 Authors
 Phoenix Brehm
 Collin Tullis
+Maha Jornaz
 
 Last Updated - 10/10/26
 
-Added interaction with the AI, return time elapsed, and new post method for the AI.
+Added interaction with the AI, return time elapsed, new post method for the AI, mounted the sounds directory, and imported StaticFiles.
 """
 
 from fastapi import FastAPI, HTTPException
@@ -32,7 +33,7 @@ from ai import AISolver
 
 app = FastAPI()
 
-app.mount("/sounds", StaticFiles(directory="frontend/sounds"), name="sounds")
+app.mount("/sounds", StaticFiles(directory="frontend/sounds"), name="sounds")    #allows the browser to access the sound files
 
 origins = ["*"]
 
